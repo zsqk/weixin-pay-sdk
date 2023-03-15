@@ -62,12 +62,14 @@ export class WxpaySDK {
     });
 
     const text = await res.text();
-    console.log(res.status, text);
 
     if (res.status >= 300) {
-      // TODO: 完善报错信息
+      if (res.headers.get('Content-Type') === 'application/json') {
+        throw new Error(text);
+      }
       throw new Error(`${res.status} ${text}`);
     }
+
     if (res.headers.get('Content-Type') !== 'application/json') {
       return text;
     }
