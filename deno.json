@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "strict": true
+  },
+  "lock": false,
+  "lint": {
+    "rules": {
+      "tags": [
+        "recommended"
+      ],
+      "include": [
+        "eqeqeq",
+        "explicit-module-boundary-types",
+        "no-throw-literal"
+      ],
+      "exclude": [
+        "ban-unused-ignore"
+      ]
+    }
+  },
+  "fmt": {
+    "options": {
+      "useTabs": false,
+      "lineWidth": 80,
+      "indentWidth": 2,
+      "singleQuote": true
+    }
+  }
+}
