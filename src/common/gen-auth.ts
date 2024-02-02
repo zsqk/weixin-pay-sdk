@@ -1,4 +1,4 @@
-import { rasSign } from 'https://deno.land/x/somefn@v0.24.0/js/hash.ts';
+import { rsaSign } from 'https://deno.land/x/somefn@v0.27.1/js/hash.ts';
 import { encode } from 'https://deno.land/std@0.178.0/encoding/base64.ts';
 
 /**
@@ -21,7 +21,7 @@ export async function genAuth(
   const nonceStr = crypto.randomUUID().replaceAll('-', '');
   const timestamp = Date.now().toString().slice(0, -3);
   const text = genText({ ...opt, nonceStr, timestamp });
-  const sign = await rasSign({ hash: 'SHA-256', s: keyString }, text);
+  const sign = await rsaSign({ hash: 'SHA-256', s: keyString }, text);
   return `WECHATPAY2-SHA256-RSA2048 mchid="${mchid}",`
     .concat(`nonce_str="${nonceStr}",signature="${encode(sign)}",`)
     .concat(`timestamp="${timestamp}",`)
