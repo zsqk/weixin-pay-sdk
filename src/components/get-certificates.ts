@@ -1,4 +1,5 @@
 import { assertUnknownObject } from 'https://deno.land/x/somefn@v0.27.1/ts/object.ts';
+import { decrypt } from 'https://deno.land/x/somefn@v0.27.1/js/aes.ts';
 
 /**
  * [业务类型] 微信支付 平台证书
@@ -73,4 +74,18 @@ export function assertCertificate(v: unknown): asserts v is Certificate {
   if (typeof v.encrypt_certificate.nonce !== 'string') {
     throw new TypeError('encrypt_certificate.nonce must be string');
   }
+}
+
+export async function decryptCertificate(
+  key: CryptoKey,
+  v: Certificate['encrypt_certificate'],
+): Promise<void> {
+  const res = await decrypt(
+    key,
+    new Uint8Array(
+      [...v.nonce].map((h) => Number.parseInt(h, 16)),
+    ),
+    v.ciphertext,
+  );
+  console.log(res);
 }
