@@ -1,3 +1,5 @@
+import { assertUnknownObject } from 'https://deno.land/x/somefn@v0.27.1/ts/object.ts';
+
 /**
  * [业务类型] 微信支付 平台证书
  * @link <https://pay.weixin.qq.com/docs/merchant/apis/platform-certificate/api-v3-get-certificates/get.html>
@@ -39,9 +41,36 @@ export type Certificate = {
 };
 
 /**
- * 断言参数为微信支付平台证书
+ * [业务类型断言函数] 断言参数为微信支付平台证书
  * @param v
  */
 export function assertCertificate(v: unknown): asserts v is Certificate {
-  // TODO: check
+  assertUnknownObject(v);
+  if (typeof v.serial_no !== 'string') {
+    throw new TypeError('serial_no must be string');
+  }
+  if (v.effective_time !== undefined && typeof v.effective_time !== 'string') {
+    throw new TypeError('effective_time must be string or undefined');
+  }
+  if (v.expire_time !== undefined && typeof v.expire_time !== 'string') {
+    throw new TypeError('expire_time must be string or undefined');
+  }
+  assertUnknownObject(v.encrypt_certificate);
+  if (typeof v.encrypt_certificate.algorithm !== 'string') {
+    throw new TypeError('encrypt_certificate.algorithm must be string');
+  }
+  if (
+    v.encrypt_certificate.associated_data !== undefined &&
+    typeof v.encrypt_certificate.associated_data !== 'string'
+  ) {
+    throw new TypeError(
+      'encrypt_certificate.associated_data must be string or undefined',
+    );
+  }
+  if (typeof v.encrypt_certificate.ciphertext !== 'string') {
+    throw new TypeError('encrypt_certificate.ciphertext must be string');
+  }
+  if (typeof v.encrypt_certificate.nonce !== 'string') {
+    throw new TypeError('encrypt_certificate.nonce must be string');
+  }
 }
