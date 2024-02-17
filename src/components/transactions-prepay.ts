@@ -8,7 +8,7 @@
  * 请求参数
  * @link <https://pay.weixin.qq.com/docs/merchant/apis/mini-program-payment/mini-prepay.html>
  */
-type ReqParams = {
+export type PrepayReqParams = {
   /**
    * 【公众号ID】 公众号ID
    */
@@ -257,4 +257,9 @@ enum BusinessErrorCode {
    * 系统异常，请用相同参数重新调用
    */
   SYSTEM_ERROR = 'SYSTEM_ERROR',
+  /**
+   * 余额不足 (查询支付)
+   * 用户账号余额不足，请用户充值或更换支付卡后再支付
+   */
+  NOT_ENOUGH = 'NOT_ENOUGH',
 }
