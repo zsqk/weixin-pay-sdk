@@ -1,6 +1,5 @@
 import { assertUnknownObject } from 'https://deno.land/x/somefn@v0.28.0/ts/object.ts';
-import { decrypt } from 'https://deno.land/x/somefn@v0.28.0/js/aes.ts';
-import { decodeBase64 } from 'https://deno.land/std@0.216.0/encoding/base64.ts';
+import { decrypt } from 'https://deno.land/x/somefn@v0.28.1/js/aes.ts';
 
 /**
  * [业务类型] 微信支付 平台证书
@@ -77,22 +76,33 @@ export function assertCertificate(v: unknown): asserts v is Certificate {
   }
 }
 
+/**
+ * 解密微信传来的证书
+ * @param key
+ * @param v
+ * @returns
+ */
 export async function decryptCertificate(
   key: CryptoKey,
   v: Certificate['encrypt_certificate'],
-): Promise<void> {
-  const decryptedData = await decrypt(key, {
-    encodingType: 'utf8',
-    data: v.nonce,
-  }, {
-    encodingType: 'base64',
-    data: v.ciphertext,
-  }, {
-    additionalData: v.associated_data
-      ? { encodingType: 'utf8', data: v.associated_data }
-      : undefined,
-    decryptedEncodingType: 'utf8',
-  });
+): Promise<string> {
+  const decryptedData = await decrypt(
+    key,
+    {
+      encodingType: 'utf8',
+      data: v.nonce,
+    },
+    {
+      encodingType: 'base64',
+      data: v.ciphertext,
+    },
+    {
+      additionalData: v.associated_data
+        ? { encodingType: 'utf8', data: v.associated_data }
+        : undefined,
+      decryptedEncodingType: 'utf8',
+    },
+  );
 
-  console.log(decryptedData, 'decryptedData');
+  return decryptedData;
 }
