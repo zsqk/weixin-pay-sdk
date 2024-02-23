@@ -17,13 +17,18 @@ weixin pay SDK for deno (v3)
 
 ## 文档标准
 
-微信支付 v3 的 API 文档至少有两处, 以支付下单为例:
+微信支付 v3 的 API 文档至少有两种, 以支付下单为例:
 
 1. <https://pay.weixin.qq.com/docs/merchant/apis/jsapi-payment/direct-jsons/jsapi-prepay.html>
 2. <https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_1_1.shtml>
 
 我们使用前者. 因为当前时间查看时, 前者文档显示的更新时间为 `2023.08.16`,
 而后者文档显示的更新时间为 `2022.09.05`. 前者受到了微信支付更良好的维护.
+
+除了文档版本的区别, 从面向的用户群上还分为两种:
+
+1. 商户平台: <https://pay.weixin.qq.com/docs/merchant/products/jsapi-payment/introduction.html>
+2. 合作伙伴平台: <https://pay.weixin.qq.com/docs/partner/products/partner-jsapi-payment/introduction.html>
 
 ## 版本号
 

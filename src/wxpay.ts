@@ -1,4 +1,14 @@
 import { genAuth } from './common/gen-auth.ts';
+import {
+  assertArray,
+  assertUnknownObject,
+} from 'https://deno.land/x/somefn@v0.27.1/ts/object.ts';
+import {
+  assertCertificate,
+  Certificate,
+  decryptCertificate,
+} from './components/get-certificates.ts';
+import { genAesKey } from 'https://deno.land/x/somefn@v0.28.1/js/aes.ts';
 
 export class WxpaySDK {
   /** 商户号 */
@@ -13,18 +23,36 @@ export class WxpaySDK {
   /** RSA 密钥, 保密 */
   private readonly keyString: string;
 
+  /**
+   * API V3 密钥
+   */
+  private readonly apiV3Key?: Promise<CryptoKey>;
+
+  isDebug = false;
+
   constructor(
-    { mchid, rsaSN, endpoint, keyString }: {
+    { mchid, rsaSN, endpoint, keyString, apiV3KeyString, isDebug }: {
       mchid: string;
       rsaSN: string;
       keyString: string;
       endpoint?: string;
+      apiV3KeyString?: string;
+      isDebug?: boolean;
     },
   ) {
     this.mchid = mchid;
     this.rsaSN = rsaSN;
     this.keyString = keyString;
     this.endpoint = endpoint ?? 'https://api.mch.weixin.qq.com';
+    if (isDebug !== undefined) {
+      this.isDebug = isDebug;
+    }
+    if (apiV3KeyString !== undefined) {
+      this.apiV3Key = genAesKey(
+        'AES-GCM',
+        new TextEncoder().encode(apiV3KeyString),
+      ).then(([key]) => key);
+    }
   }
 
   private genAuth(opt: {
@@ -39,27 +67,49 @@ export class WxpaySDK {
     });
   }
 
+  private log(...data: unknown[]): void {
+    if (this.isDebug) {
+      console.log(...data);
+    }
+  }
+
   async request({
     method,
     path,
     body,
+    headers,
   }: {
     method: 'POST' | 'GET';
     path: string;
-    body: unknown;
+    body?: unknown;
+    headers?: Record<string, string>;
   }): Promise<unknown> {
     const bodyStr = JSON.stringify(body);
-    const res = await fetch(`${this.endpoint}${path}`, {
-      method,
-      headers: {
-        Authorization: await this.genAuth({ method, path, body: bodyStr }),
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'Accept-Language': 'zh-CN',
-        'User-Agent': 'zsqk-z1 0.0.1',
-      },
-      body: bodyStr,
-    });
+    const ua = 'zsqk-z1 0.0.1';
+    const requestInit: RequestInit = body
+      ? {
+        method,
+        headers: {
+          'User-Agent': ua,
+          ...headers,
+          Authorization: await this.genAuth({ method, path, body: bodyStr }),
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'Accept-Language': 'zh-CN',
+        },
+        body: bodyStr,
+      }
+      : {
+        method,
+        headers: {
+          'User-Agent': ua,
+          ...headers,
+          Authorization: await this.genAuth({ method, path, body: '' }),
+          Accept: 'application/json',
+          'Accept-Language': 'zh-CN',
+        },
+      };
+    const res = await fetch(`${this.endpoint}${path}`, requestInit);
 
     const text = await res.text();
 
@@ -70,9 +120,41 @@ export class WxpaySDK {
       throw new Error(`${res.status} ${text}`);
     }
 
-    if (res.headers.get('Content-Type') !== 'application/json') {
-      return text;
+    this.log('res.headers', res.headers);
+    if (res.headers.get('Content-Type')?.includes('application/json')) {
+      return JSON.parse(text);
     }
-    return JSON.parse(text);
+    return text;
+  }
+
+  /**
+   * 获取平台证书
+   * 接口的频率限制: 单个商户号1000 次/s
+   * @link <https://pay.weixin.qq.com/docs/merchant/apis/platform-certificate/api-v3-get-certificates/get.html>
+   * @returns
+   */
+  public async getCertificates(): Promise<
+    Array<
+      Omit<Certificate, 'encrypt_certificate'> & {
+        /** 解密后的证书原文 */
+        certificate: string;
+      }
+    >
+  > {
+    if (!this.apiV3Key) {
+      throw new Error('apiV3Key is not set');
+    }
+    const res = await this.request({ method: 'GET', path: '/v3/certificates' });
+    assertUnknownObject(res);
+    assertArray(res.data);
+    const apiV3Key = await this.apiV3Key;
+    return Promise.all(res.data.map(async (v) => {
+      assertCertificate(v);
+      const { encrypt_certificate, ...rest } = v;
+      return {
+        certificate: await decryptCertificate(apiV3Key, encrypt_certificate),
+        ...rest,
+      };
+    }));
   }
 }
