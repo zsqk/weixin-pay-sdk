@@ -6,7 +6,9 @@ import {
 import {
   assertCertificate,
   Certificate,
+  decryptCertificate,
 } from './components/get-certificates.ts';
+import { genAesKey } from 'https://deno.land/x/somefn@v0.28.1/js/aes.ts';
 
 export class WxpaySDK {
   /** 商户号 */
@@ -21,14 +23,20 @@ export class WxpaySDK {
   /** RSA 密钥, 保密 */
   private readonly keyString: string;
 
+  /**
+   * API V3 密钥
+   */
+  private readonly apiV3Key?: Promise<CryptoKey>;
+
   isDebug = false;
 
   constructor(
-    { mchid, rsaSN, endpoint, keyString, isDebug }: {
+    { mchid, rsaSN, endpoint, keyString, apiV3KeyString, isDebug }: {
       mchid: string;
       rsaSN: string;
       keyString: string;
       endpoint?: string;
+      apiV3KeyString?: string;
       isDebug?: boolean;
     },
   ) {
@@ -38,6 +46,12 @@ export class WxpaySDK {
     this.endpoint = endpoint ?? 'https://api.mch.weixin.qq.com';
     if (isDebug !== undefined) {
       this.isDebug = isDebug;
+    }
+    if (apiV3KeyString !== undefined) {
+      this.apiV3Key = genAesKey(
+        'AES-GCM',
+        new TextEncoder().encode(apiV3KeyString),
+      ).then(([key]) => key);
     }
   }
 
@@ -119,15 +133,28 @@ export class WxpaySDK {
    * @link <https://pay.weixin.qq.com/docs/merchant/apis/platform-certificate/api-v3-get-certificates/get.html>
    * @returns
    */
-  public async getCertificates(): Promise<{ data: Certificate[] }> {
+  public async getCertificates(): Promise<
+    Array<
+      Omit<Certificate, 'encrypt_certificate'> & {
+        /** 解密后的证书原文 */
+        certificate: string;
+      }
+    >
+  > {
+    if (!this.apiV3Key) {
+      throw new Error('apiV3Key is not set');
+    }
     const res = await this.request({ method: 'GET', path: '/v3/certificates' });
     assertUnknownObject(res);
     assertArray(res.data);
-    return {
-      data: res.data.map((v) => {
-        assertCertificate(v);
-        return v;
-      }),
-    };
+    const apiV3Key = await this.apiV3Key;
+    return Promise.all(res.data.map(async (v) => {
+      assertCertificate(v);
+      const { encrypt_certificate, ...rest } = v;
+      return {
+        certificate: await decryptCertificate(apiV3Key, encrypt_certificate),
+        ...rest,
+      };
+    }));
   }
 }
