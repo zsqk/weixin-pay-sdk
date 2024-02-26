@@ -9,6 +9,14 @@ import {
   decryptCertificate,
 } from './components/get-certificates.ts';
 import { genAesKey } from 'https://deno.land/x/somefn@v0.28.1/js/aes.ts';
+import {
+  PrepayReqParams,
+  PrepayResParams,
+} from './components/transactions-prepay.ts';
+import {
+  checkGetPayDetailRes,
+  PayDetailRes,
+} from './components/transactions-get.ts';
 
 export class WxpaySDK {
   /** 商户号 */
@@ -125,6 +133,63 @@ export class WxpaySDK {
       return JSON.parse(text);
     }
     return text;
+  }
+
+  /**
+   * 微信支付调起 JSAPI下单
+   * @link https://pay.weixin.qq.com/docs/merchant/apis/jsapi-payment/direct-jsons/jsapi-prepay.html
+   * @param p
+   * @returns
+   */
+  public async prepay(p: PrepayReqParams): Promise<PrepayResParams> {
+    const res = await this.request({
+      method: 'POST',
+      path: '/v3/pay/transactions/jsapi',
+      body: p,
+    });
+    if (typeof res !== 'string') {
+      throw new Error('请求有误!');
+    }
+    const { prepay_id } = JSON.parse(res);
+    return { prepay_id };
+  }
+  /**
+   * 微信支付订单号查询订单
+   * @link https://pay.weixin.qq.com/docs/merchant/apis/jsapi-payment/query-by-wx-trade-no.html
+   * @param transaction_id
+   * @returns
+   */
+  public async queryByID(transaction_id: string): Promise<PayDetailRes> {
+    const res = await this.request({
+      method: 'GET',
+      path: `/v3/pay/transactions/id/${transaction_id}?mchid=${this.mchid}`,
+    });
+    if (typeof res !== 'string') {
+      throw new Error('请求有误!');
+    }
+    const result = checkGetPayDetailRes(JSON.parse(res));
+    return result;
+  }
+
+  /**
+   * 商户订单号查询订单
+   * @link https://pay.weixin.qq.com/docs/merchant/apis/jsapi-payment/query-by-out-trade-no.html
+   * @param out_trade_no
+   * @returns
+   */
+  public async queryByOutTradeNo(
+    out_trade_no: string,
+  ): Promise<PayDetailRes> {
+    const res = await this.request({
+      method: 'GET',
+      path:
+        `/v3/pay/transactions/out-trade-no/${out_trade_no}?mchid=${this.mchid}`,
+    });
+    if (typeof res !== 'string') {
+      throw new Error('请求有误!');
+    }
+    const result = checkGetPayDetailRes(JSON.parse(res));
+    return result;
   }
 
   /**

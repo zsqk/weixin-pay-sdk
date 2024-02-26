@@ -165,7 +165,7 @@ export type PrepayReqParams = {
  * 应答参数
  * @link <https://pay.weixin.qq.com/docs/merchant/apis/mini-program-payment/mini-prepay.html>
  */
-type Res = {
+export type PrepayResParams = {
   /**
    * 【预支付交易会话标识】 预支付交易会话标识。用于后续接口调用中使用，该值有效期为2小时
    */
@@ -176,7 +176,7 @@ type Res = {
  * 业务错误码
  * @link <https://pay.weixin.qq.com/docs/merchant/apis/mini-program-payment/mini-prepay.html>
  */
-enum BusinessErrorCode {
+export enum BusinessErrorCode {
   /**
    * AppID和mch_id不匹配
    * 请确认AppID和mch_id是否匹配
