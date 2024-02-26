@@ -150,6 +150,7 @@ export class WxpaySDK {
     const { prepay_id } = JSON.parse(res);
     return { prepay_id };
   }
+
   /**
    * 微信支付订单号查询订单
    * @link https://pay.weixin.qq.com/docs/merchant/apis/jsapi-payment/query-by-wx-trade-no.html
