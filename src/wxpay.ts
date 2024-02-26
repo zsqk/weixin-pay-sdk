@@ -13,10 +13,7 @@ import {
   PrepayReqParams,
   PrepayResParams,
 } from './components/transactions-prepay.ts';
-import {
-  checkGetPayDetailRes,
-  PayDetailRes,
-} from './components/transactions-get.ts';
+import { PayDetailRes } from './components/transactions-get.ts';
 
 export class WxpaySDK {
   /** 商户号 */
@@ -167,7 +164,7 @@ export class WxpaySDK {
     if (typeof res !== 'string') {
       throw new Error('请求有误!');
     }
-    const result = checkGetPayDetailRes(JSON.parse(res));
+    const result = JSON.parse(res);
     return result;
   }
 
@@ -188,7 +185,7 @@ export class WxpaySDK {
     if (typeof res !== 'string') {
       throw new Error('请求有误!');
     }
-    const result = checkGetPayDetailRes(JSON.parse(res));
+    const result = JSON.parse(res);
     return result;
   }
 
