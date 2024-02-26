@@ -158,9 +158,11 @@ export class WxpaySDK {
    * @returns
    */
   public async queryByID(transaction_id: string): Promise<PayDetailRes> {
+    const p = new URLSearchParams();
+    p.set('mchid', this.mchid);
     const res = await this.request({
       method: 'GET',
-      path: `/v3/pay/transactions/id/${transaction_id}?mchid=${this.mchid}`,
+      path: `/v3/pay/transactions/id/${transaction_id}?${p}`,
     });
     if (typeof res !== 'string') {
       throw new Error('请求有误!');
@@ -178,10 +180,11 @@ export class WxpaySDK {
   public async queryByOutTradeNo(
     out_trade_no: string,
   ): Promise<PayDetailRes> {
+    const p = new URLSearchParams();
+    p.set('mchid', this.mchid);
     const res = await this.request({
       method: 'GET',
-      path:
-        `/v3/pay/transactions/out-trade-no/${out_trade_no}?mchid=${this.mchid}`,
+      path: `/v3/pay/transactions/out-trade-no/${out_trade_no}?${p}`,
     });
     if (typeof res !== 'string') {
       throw new Error('请求有误!');
