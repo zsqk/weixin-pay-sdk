@@ -11,7 +11,7 @@ import {
 import { genAesKey } from 'https://deno.land/x/somefn@v0.28.1/js/aes.ts';
 import {
   PrepayReqParams,
-  PrepayResParams,
+  PrepayRes,
 } from './components/transactions-prepay.ts';
 import { PayDetailRes } from './components/transactions-get.ts';
 
@@ -138,7 +138,7 @@ export class WxpaySDK {
    * @param p
    * @returns
    */
-  public async prepay(p: PrepayReqParams): Promise<PrepayResParams> {
+  public async prepay(p: PrepayReqParams): Promise<PrepayRes> {
     const res = await this.request({
       method: 'POST',
       path: '/v3/pay/transactions/jsapi',

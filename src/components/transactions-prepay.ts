@@ -165,7 +165,7 @@ export type PrepayReqParams = {
  * 应答参数
  * @link <https://pay.weixin.qq.com/docs/merchant/apis/mini-program-payment/mini-prepay.html>
  */
-export type PrepayResParams = {
+export type PrepayRes = {
   /**
    * 【预支付交易会话标识】 预支付交易会话标识。用于后续接口调用中使用，该值有效期为2小时
    */
